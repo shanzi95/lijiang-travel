@@ -73,7 +73,7 @@ img { max-width: 100%; display: block; }
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 8px 22px rgba(168, 120, 77, 0.25);
 }
-.hero-emoji { font-size: 46px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); }
+.hero-icon { width: 56px; height: 56px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); }
 .hero-title { font-size: 30px; font-weight: 700; margin: 0 0 6px; letter-spacing: 1px; }
 .hero-sub { font-size: 14px; color: var(--ink-2); margin: 0; }
 .hero-sub .dot { margin: 0 6px; opacity: 0.6; }

@@ -68,12 +68,13 @@ img { max-width: 100%; display: block; }
 .hero { text-align: center; padding: 36px 8px 12px; }
 .hero-logo {
   width: 96px; height: 96px; margin: 0 auto 18px;
-  background: linear-gradient(135deg, #c79a6a 0%, #a8784d 100%);
+  background: transparent;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 8px 22px rgba(168, 120, 77, 0.25);
+  overflow: hidden;
 }
-.hero-icon { width: 56px; height: 56px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); }
+.hero-icon { width: 96px; height: 96px; object-fit: cover; border-radius: 50%; }
 .hero-title { font-size: 30px; font-weight: 700; margin: 0 0 6px; letter-spacing: 1px; }
 .hero-sub { font-size: 14px; color: var(--ink-2); margin: 0; }
 .hero-sub .dot { margin: 0 6px; opacity: 0.6; }

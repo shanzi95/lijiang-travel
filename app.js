@@ -181,6 +181,12 @@
 
   pinnedBtn.addEventListener('click', closeScenic);
 
+  const fabHome = $('#fabHome');
+  if (fabHome) fabHome.addEventListener('click', () => {
+    closeScenic();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
   function setActiveTab(tab) {
     currentTab = tab;
     tabRoute.classList.toggle('tab-active', tab === 'route');

@@ -164,7 +164,7 @@
 
     // 动态更新第二个 tab 的文字（如"吃饭推荐"或"一日游"）
     var foodTitle = (s.food && s.food.title) || '吃饭推荐';
-    var foodIcon = (foodTitle === '一日游' || foodTitle === '二日游' || foodTitle === '一日/二日游') ? '游' : '🍜';
+    var foodIcon = (foodTitle === '一日游' || foodTitle === '二日游' || foodTitle === '一日/二日游') ? '' : '🍜';
     tabFood.innerHTML = '<span class="tab-icon">' + foodIcon + '</span> ' + esc(foodTitle);
 
     setTimeout(() => { pinned.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);

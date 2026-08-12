@@ -383,6 +383,14 @@ img { max-width: 100%; display: block; }
 .food-link-icon { font-size: 18px; }
 .food-link-arrow { margin-left: auto; font-size: 20px; opacity: 0.5; }
 
+/* ========== 吃饭推荐分类 ========== */
+.food-category { margin-bottom: 20px; }
+.food-category-title {
+  font-size: 15px; font-weight: 700; color: var(--brand);
+  margin: 0 0 10px 2px; padding-bottom: 6px;
+  border-bottom: 2px solid var(--bg-2);
+}
+
 /* ========== 图片点击放大 ========== */
 .point-img { cursor: pointer; }
 .food-banner {

@@ -164,7 +164,7 @@
 
     // 动态更新第二个 tab 的文字（如"吃饭推荐"或"一日游"）
     var foodTitle = (s.food && s.food.title) || '吃饭推荐';
-    var foodIcon = foodTitle === '一日游' ? '🚌' : '🍜';
+    var foodIcon = (foodTitle === '一日游' || foodTitle === '二日游' || foodTitle === '一日/二日游') ? '游' : '🍜';
     tabFood.innerHTML = '<span class="tab-icon">' + foodIcon + '</span> ' + esc(foodTitle);
 
     setTimeout(() => { pinned.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
@@ -248,7 +248,32 @@
     } else {
       const f = s.food || {};
       const shops = f.shops || [];
+      const categories = f.categories || [];
+      
+      // 如果有分类，按分类渲染
+      if (categories.length) {
+        let html = '';
+        categories.forEach(cat => {
+          const catShops = cat.shops || [];
+          if (!catShops.length) return;
+          html += `<div class="food-category"><div class="food-category-title">${esc(cat.icon||'')} ${esc(cat.title||'')}</div>`;
+          html += catShops.map(p => {
+            const catIcon = cat.icon || '🍜';
+            const img = p.image ? `<img src="${escA(p.image)}" alt="" loading="lazy" />` : (p.link ? '<span>🔗</span>' : `<span>${catIcon}</span>`);
+            if (p.link) {
+              return `<a class="food-link" href="${escA(p.link)}" target="_blank" rel="noopener"><span class="food-link-icon">🔗</span><span>${esc(p.name)}</span><span class="food-link-arrow">›</span></a>`;
+            }
+            return `<div class="point"><div class="point-img">${img}</div><div class="point-body"><div class="point-name">${esc(p.name)}</div><div class="point-desc">${esc(p.desc||'')}</div></div></div>`;
+          }).join('');
+          html += '</div>';
+        });
+        foodPane.innerHTML = html;
+        return;
+      }
+      
+      // 没有分类，用原来的逻辑
       if (!shops.length) { foodPane.innerHTML = '<div class="empty-tip">该景点餐饮推荐还未配置</div>'; return; }
+      const defaultIcon = (f.title === '一日游' || f.title === '二日游') ? '📋' : '🍜';
       foodPane.innerHTML = shops.map(p => {
         if (p.name === '__banner__' && p.image) {
           return `<div class="food-banner"><img src="${escA(p.image)}" alt="" loading="eager" /></div>`;
@@ -256,7 +281,7 @@
         if (p.link) {
           return `<a class="food-link" href="${escA(p.link)}" target="_blank" rel="noopener"><span class="food-link-icon">🔗</span><span>${esc(p.name)}</span><span class="food-link-arrow">›</span></a>`;
         }
-        const img = p.image ? `<img src="${escA(p.image)}" alt="" loading="lazy" />` : '<span>🍜</span>';
+        const img = p.image ? `<img src="${escA(p.image)}" alt="" loading="lazy" />` : `<span>${defaultIcon}</span>`;
         return `<div class="point"><div class="point-img">${img}</div><div class="point-body"><div class="point-name">${esc(p.name)}</div><div class="point-desc">${esc(p.desc||'')}</div></div></div>`;
       }).join('');
     }

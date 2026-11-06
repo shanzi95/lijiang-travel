@@ -159,6 +159,8 @@ img { max-width: 100%; display: block; }
   border: 0; background: none;
 }
 .point-name { font-size: 15px; font-weight: 700; margin: 2px 0 6px; color: var(--ink); }
+.point-text { padding: 16px 14px; }
+.point-text .point-name { margin-top: 0; }
 .point-desc { font-size: 13px; color: var(--ink-2); line-height: 1.65; word-break: break-word; }
 .empty-tip {
   background: #fff; border: 1px dashed var(--line); border-radius: 14px;

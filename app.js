@@ -282,6 +282,10 @@
           return `<a class="food-link" href="${escA(p.link)}" target="_blank" rel="noopener"><span class="food-link-icon">🔗</span><span>${esc(p.name)}</span><span class="food-link-arrow">›</span></a>`;
         }
         const img = p.image ? `<img src="${escA(p.image)}" alt="" loading="lazy" />` : `<span>${defaultIcon}</span>`;
+        // 管家提示卡片无需缩略图，纯文字更清爽
+        if (p.name && p.name.indexOf('可咨询管家') === 0) {
+          return `<div class="point point-text"><div class="point-body"><div class="point-name">${esc(p.name)}</div><div class="point-desc">${esc(p.desc||'')}</div></div></div>`;
+        }
         return `<div class="point"><div class="point-img">${img}</div><div class="point-body"><div class="point-name">${esc(p.name)}</div><div class="point-desc">${esc(p.desc||'')}</div></div></div>`;
       }).join('');
     }

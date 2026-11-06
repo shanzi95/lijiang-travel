@@ -232,7 +232,7 @@
         let imgHtml;
         if (p.images && p.images.length > 1) {
           // 多图：轮播组件
-          const slides = p.images.map((url, i) => `<div class="carousel-slide" data-slide="${i}" style="transform: translateX(${i * 100}%)" data-imgs="${p.images.length}"><img src="${escA(url)}" alt="" loading="${i===0?'eager':'lazy'}" /></div>`).join('');
+          const slides = p.images.map((url, i) => `<div class="carousel-slide" data-slide="${i}" style="transform: translateX(${i * 100}%)" data-imgs="${p.images.length}"><img src="${escA(url)}" alt="" loading="eager" /></div>`).join('');
           const dots = p.images.map((_, i) => `<span class="dot ${i===0?'active':''}" data-carousel="${pIdx}" data-slide="${i}"></span>`).join('');
           imgHtml = `
             <div class="carousel" data-carousel="${pIdx}">

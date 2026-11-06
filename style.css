@@ -508,31 +508,19 @@ img { max-width: 100%; display: block; }
 }
 
 /* ========== 纯 CSS 矢量占位图标（不依赖 emoji 字体） ========== */
-.ic-map, .ic-map-sm {
-  display: inline-block; position: relative;
-  background:
-    linear-gradient(135deg, transparent 47%, var(--ink-2) 47%, var(--ink-2) 53%, transparent 53%),
-    linear-gradient(45deg, transparent 47%, var(--ink-2) 47%, var(--ink-2) 53%, transparent 53%);
-  opacity: 0.5;
-}
+/* 路线缩略图占位：折线地图样式 */
 .ic-map {
-  width: 34px; height: 34px; border: 2px solid var(--ink-2); border-radius: 4px;
-  position: relative; overflow: hidden;
+  display: block; width: 40px; height: 40px; margin: 0 auto;
+  opacity: 0.45;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238c6239' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6'/%3E%3Cline x1='8' y1='2' x2='8' y2='18'/%3E%3Cline x1='16' y1='6' x2='16' y2='22'/%3E%3C/svg%3E");
+  background-size: contain; background-repeat: no-repeat; background-position: center;
 }
-.ic-map::before {
-  content: ''; position: absolute; left: 50%; top: 50%;
-  width: 6px; height: 6px; border-radius: 50%; background: var(--brand);
-  transform: translate(-50%, -50%); opacity: 1;
-}
+/* tab 里的小图标 */
 .ic-map-sm {
-  width: 15px; height: 15px; border: 1.5px solid currentColor; border-radius: 3px;
+  display: inline-block; width: 14px; height: 14px;
   vertical-align: -2px; margin-right: 4px;
-  background: none !important;
-}
-.ic-map-sm::after {
-  content: ''; position: absolute; left: 50%; top: 50%;
-  width: 3px; height: 3px; border-radius: 50%; background: currentColor;
-  transform: translate(-50%, -50%);
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238c6239' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6'/%3E%3Cline x1='8' y1='2' x2='8' y2='18'/%3E%3Cline x1='16' y1='6' x2='16' y2='22'/%3E%3C/svg%3E");
+  background-size: contain; background-repeat: no-repeat; background-position: center;
 }
 .ic-clock {
   display: inline-block; width: 10px; height: 10px; border-radius: 50%;
@@ -548,4 +536,10 @@ img { max-width: 100%; display: block; }
   width: 22px; height: 22px; border-radius: 50% 50% 50% 0;
   background: var(--ink-2); opacity: 0.3;
   transform: rotate(-45deg);
+}
+
+/* emoji 不支持时的首字兜底样式 */
+.s-card .s-emoji.is-fb {
+  font-size: 34px; font-weight: 700; color: var(--brand);
+  opacity: 0.85; font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
 }

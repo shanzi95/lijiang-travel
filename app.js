@@ -76,7 +76,12 @@
       card.className = 's-card';
       card.style.animationDelay = `${i * 0.04}s`;
       card.dataset.id = s.id;
-      card.innerHTML = `<span class="s-emoji">${esc(s.icon || '📍')}</span><span class="s-name">${esc(s.name)}</span>`;
+      // emoji 优先；设备不支持该 emoji 时用景点首字兜底，永不会出现方框
+      var useEmoji = !s.fallbackChar || emojiSupported(s.icon);
+      var iconHtml = useEmoji
+        ? '<span class="s-emoji">' + esc(s.icon || '\u{1F4CD}') + '</span>'
+        : '<span class="s-emoji is-fb">' + esc(s.fallbackChar) + '</span>';
+      card.innerHTML = iconHtml + '<span class="s-name">' + esc(s.name) + '</span>';
       card.addEventListener('click', () => openScenic(s.id));
       grid.appendChild(card);
     });
@@ -304,6 +309,36 @@
     }
   }
 
+    // 检测设备是否真的能渲染某个 emoji（用 canvas 比对像素，避免出现方框）
+    var _emojiCache = {};
+    function emojiSupported(ch) {
+      if (!ch) return true;
+      if (ch in _emojiCache) return _emojiCache[ch];
+      try {
+        var cv = document.createElement('canvas');
+        cv.width = cv.height = 32;
+        var ctx = cv.getContext('2d');
+        ctx.textBaseline = 'top';
+        ctx.font = '28px sans-serif';
+        // 参考字符：一个肯定没有字形的高位私用区字符
+        var ref = String.fromCharCode(0xE000);
+        ctx.fillText(ref, 0, 0);
+        var refData = ctx.getImageData(0, 0, 32, 32).data;
+        ctx.clearRect(0, 0, 32, 32);
+        ctx.fillText(ch, 0, 0);
+        var chData = ctx.getImageData(0, 0, 32, 32).data;
+        var supported = false;
+        for (var i = 0; i < chData.length; i += 4) {
+          if (chData[i + 3] !== refData[i + 3] || chData[i] !== refData[i]) { supported = true; break; }
+        }
+        _emojiCache[ch] = supported;
+        return supported;
+      } catch (e) {
+        _emojiCache[ch] = true;
+        return true;
+      }
+    }
+
     function esc(s) { return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
   function escA(s) { return esc(s); }
 
@@ -382,22 +417,39 @@
   if (lbNext) lbNext.addEventListener('click', function(e) { e.stopPropagation(); lbGo(1); });
 
   document.addEventListener('click', (e) => {
-    // carousel image click: collect all images in same group
+    if (!lightbox.hidden) return;   // 大图已打开时，忽略页面上的其他点击
+
+    // 1) 轮播图：收集同组全部图片
     const carouselImg = e.target.closest('.carousel-slide img');
-    if (carouselImg && carouselImg.src) {
-      const carousel = e.target.closest('.carousel');
-      const allSlides = carousel ? Array.from(carousel.querySelectorAll('.carousel-slide img')).map(function(img) { return img.src; }) : [carouselImg.src];
-      const idx = allSlides.indexOf(carouselImg.src);
-      openLightbox(allSlides, idx >= 0 ? idx : 0);
+    if (carouselImg) {
+      const carousel = carouselImg.closest('.carousel');
+      const slides = carousel ? Array.from(carousel.querySelectorAll('.carousel-slide img')) : [carouselImg];
+      // 用 getAttribute 取原始相对路径，避免绝对/相对地址不一致导致索引匹配失败
+      const urls = slides.map(function(im) { return im.getAttribute('src'); }).filter(Boolean);
+      const cur = carouselImg.getAttribute('src');
+      const idx = Math.max(0, urls.indexOf(cur));
+      if (urls.length) openLightbox(urls, idx);
       return;
     }
-    // single image click
+
+    // 2) 横向小图集：同样收集整组
+    const galImg = e.target.closest('.img-gallery img');
+    if (galImg) {
+      const gal = galImg.closest('.img-gallery');
+      const imgs = gal ? Array.from(gal.querySelectorAll('img')) : [galImg];
+      const urls = imgs.map(function(im) { return im.getAttribute('src'); }).filter(Boolean);
+      const cur = galImg.getAttribute('src');
+      const idx = Math.max(0, urls.indexOf(cur));
+      if (urls.length) openLightbox(urls, idx);
+      return;
+    }
+
+    // 3) 单图卡片
     const imgWrap = e.target.closest('.point-img');
     if (imgWrap) {
       const img = imgWrap.querySelector('img');
-      if (img && img.src) {
-        openLightbox([img.src], 0);
-      }
+      const src = img && img.getAttribute('src');
+      if (src) openLightbox([src], 0);
     }
   });
 
@@ -408,10 +460,16 @@
     lbIndex = 0;
     document.body.style.overflow = '';
   }
-  if (lightboxClose) lightboxClose.addEventListener('click', closeLightbox);
+  if (lightboxClose) lightboxClose.addEventListener('click', function(e) {
+    e.stopPropagation();
+    closeLightbox();
+  });
   if (lightbox) {
     lightbox.addEventListener('click', function(e) {
-      if (e.target.classList.contains('lightbox-backdrop')) closeLightbox();
+      // 只点背景才关；点图片/箭头/缩略图一律不关
+      if (e.target === lightbox || e.target.classList.contains('lightbox-backdrop')) {
+        closeLightbox();
+      }
     });
   }
   document.addEventListener('keydown', function(e) {

@@ -506,6 +506,24 @@
   document.addEventListener('load', function(e) {
     if (e.target.tagName === 'IMG') e.target.classList.add('loaded');
   }, true);
+  // 图片加载失败（如 GitHub Pages 偶发 502）自动重试，最多 3 次
+  var _retryMap = {};
+  function retryImage(img) {
+    var src = img.getAttribute('src');
+    if (!src) return;
+    var n = _retryMap[src] || 0;
+    if (n >= 3) return;
+    _retryMap[src] = n + 1;
+    setTimeout(function() {
+      // 加时间戳绕过失败缓存
+      var clean = src.split('?')[0];
+      img.src = clean + (clean.indexOf('?') >= 0 ? '&' : '?') + '_r=' + (n + 1) + '_' + Date.now();
+    }, 350 * (n + 1));
+  }
+  document.addEventListener('error', function(e) {
+    if (e.target && e.target.tagName === 'IMG') retryImage(e.target);
+  }, true);
+
   // 每次渲染后，把所有已完成加载的图片立即标记为 loaded
   function sweepLoadedImages() {
     var imgs = document.querySelectorAll('img:not(.loaded)');

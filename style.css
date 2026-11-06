@@ -104,6 +104,13 @@ img { max-width: 100%; display: block; }
 }
 .pinned-card:active { transform: scale(0.98); }
 .pinned-emoji { font-size: 70px; line-height: 1; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.08)); }
+.pinned-emoji.is-badge {
+  width: 76px; height: 76px; border-radius: 24px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto; font-size: 38px; font-weight: 700; color: #fff;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.25);
+  filter: none;
+}
 .pinned-name { font-size: 22px; font-weight: 700; color: var(--ink); letter-spacing: 1px; }
 
 /* 二级菜单 */
@@ -188,6 +195,17 @@ img { max-width: 100%; display: block; }
   filter: drop-shadow(0 3px 5px rgba(0,0,0,0.06));
   transition: transform 0.3s ease;
 }
+/* 汉字徽章：不依赖 emoji 字体，任何设备都能正常显示 */
+.s-card .s-badge {
+  width: 56px; height: 56px; border-radius: 18px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 6px auto 14px;
+  font-size: 28px; font-weight: 700; line-height: 1;
+  color: #fff; letter-spacing: 0;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.13), inset 0 1px 0 rgba(255,255,255,0.25);
+  transition: transform 0.3s ease;
+}
+.s-card:active .s-badge { transform: scale(0.94); }
 .s-card .s-name { font-size: 15px; font-weight: 600; color: var(--ink); letter-spacing: 0.5px; }
 .s-card.is-hidden { opacity: 0; transform: scale(0.85); pointer-events: none; }
 
@@ -275,8 +293,8 @@ img { max-width: 100%; display: block; }
   bottom: max(20px, env(safe-area-inset-bottom));
   width: 52px; height: 52px; border-radius: 50%;
   background: var(--bg);
-  color: #fff; display: flex; align-items: center; justify-content: center;
-  font-size: 24px; box-shadow: none;
+  color: var(--brand); display: flex; align-items: center; justify-content: center;
+  font-size: 24px; box-shadow: none; opacity: 0.55;
   z-index: 50; transition: transform 0.2s ease;
 }
 .fab-admin:active { transform: scale(0.95); }
@@ -460,6 +478,21 @@ img { max-width: 100%; display: block; }
   letter-spacing: 1px;
 }
 
+/* lightbox 缩略图预览条 */
+.lightbox-thumbs {
+  position: absolute; bottom: 56px; left: 0; right: 0;
+  display: flex; gap: 6px; overflow-x: auto; padding: 6px 12px;
+  justify-content: center; z-index: 3;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.lightbox-thumbs::-webkit-scrollbar { display: none; }
+.lightbox-thumbs img {
+  width: 52px; height: 52px; object-fit: cover; border-radius: 8px;
+  border: 2px solid transparent; opacity: 0.55; flex: 0 0 auto;
+  transition: opacity 0.2s, border-color 0.2s; cursor: pointer;
+}
+.lightbox-thumbs img.active { border-color: #fff; opacity: 1; }
+
 /* ========== 响应式 ========== */
 @media (min-width: 720px) {
   .page { padding: 0 32px 100px; }
@@ -472,4 +505,47 @@ img { max-width: 100%; display: block; }
   .page { max-width: 960px; }
   .grid { grid-template-columns: repeat(4, 1fr); }
   .route-list { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ========== 纯 CSS 矢量占位图标（不依赖 emoji 字体） ========== */
+.ic-map, .ic-map-sm {
+  display: inline-block; position: relative;
+  background:
+    linear-gradient(135deg, transparent 47%, var(--ink-2) 47%, var(--ink-2) 53%, transparent 53%),
+    linear-gradient(45deg, transparent 47%, var(--ink-2) 47%, var(--ink-2) 53%, transparent 53%);
+  opacity: 0.5;
+}
+.ic-map {
+  width: 34px; height: 34px; border: 2px solid var(--ink-2); border-radius: 4px;
+  position: relative; overflow: hidden;
+}
+.ic-map::before {
+  content: ''; position: absolute; left: 50%; top: 50%;
+  width: 6px; height: 6px; border-radius: 50%; background: var(--brand);
+  transform: translate(-50%, -50%); opacity: 1;
+}
+.ic-map-sm {
+  width: 15px; height: 15px; border: 1.5px solid currentColor; border-radius: 3px;
+  vertical-align: -2px; margin-right: 4px;
+  background: none !important;
+}
+.ic-map-sm::after {
+  content: ''; position: absolute; left: 50%; top: 50%;
+  width: 3px; height: 3px; border-radius: 50%; background: currentColor;
+  transform: translate(-50%, -50%);
+}
+.ic-clock {
+  display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+  border: 1.5px solid currentColor; margin-right: 4px; vertical-align: -1px;
+  position: relative;
+}
+.ic-clock::after {
+  content: ''; position: absolute; left: 50%; top: 50%;
+  width: 1.5px; height: 4px; background: currentColor;
+  transform: translate(-50%, -100%) rotate(0deg); transform-origin: bottom center;
+}
+.ic-pin {
+  width: 22px; height: 22px; border-radius: 50% 50% 50% 0;
+  background: var(--ink-2); opacity: 0.3;
+  transform: rotate(-45deg);
 }

@@ -89,9 +89,9 @@
       return;
     }
     routeList.innerHTML = state.routes.map(r => {
-      const thumb = r.image ? `<img src="${escA(r.image)}" alt="" loading="lazy" />` : '<span>🗺️</span>';
+      const thumb = r.image ? `<img src="${escA(r.image)}" alt="" loading="lazy" />` : '<span class="ic-map"></span>';
       const tags = [];
-      if (r.duration) tags.push(`<span class="tag">⏱ ${esc(r.duration)}</span>`);
+      if (r.duration) tags.push(`<span class="tag"><span class="ic-clock"></span>${esc(r.duration)}</span>`);
       if (r.type) tags.push(`<span class="tag">${esc(r.type)}</span>`);
       const hasDetail = r.detail && r.detail.length > 0;
       const arrow = hasDetail ? '<span class="route-arrow">›</span>' : '';
@@ -164,7 +164,7 @@
 
     // 动态更新第二个 tab 的文字（如"吃饭推荐"或"一日游"）
     var foodTitle = (s.food && s.food.title) || '吃饭推荐';
-    var foodIcon = (foodTitle === '一日游' || foodTitle === '二日游' || foodTitle === '一日/二日游') ? '' : '🍜';
+    var foodIcon = '';
     tabFood.innerHTML = '<span class="tab-icon">' + foodIcon + '</span> ' + esc(foodTitle);
 
     setTimeout(() => { pinned.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
@@ -222,7 +222,7 @@
         } else {
           imgHtml = (p.image || (p.images && p.images[0]))
             ? `<img src="${escA(p.image || p.images[0])}" alt="" loading="lazy" />`
-            : '<span>📍</span>';
+            : '<span class="ic-pin"></span>';
         }
         return `<div class="point"><div class="point-img">${imgHtml}</div><div class="point-body"><div class="point-name">${esc(p.name)}</div><div class="point-desc">${esc(p.desc||'')}</div></div></div>`;
       }).join('');
@@ -244,6 +244,19 @@
         carousel.querySelectorAll('.carousel-dots .dot').forEach(dot => {
           dot.addEventListener('click', (e) => { e.stopPropagation(); st.current = +dot.dataset.slide; updateCarousel(carousel, st.current); });
         });
+        // 手机触摸滑动切换
+        let touchX = 0, touchY = 0, touchT = 0;
+        carousel.addEventListener('touchstart', (e) => {
+          touchX = e.touches[0].clientX; touchY = e.touches[0].clientY; touchT = Date.now();
+        }, { passive: true });
+        carousel.addEventListener('touchend', (e) => {
+          const dx = e.changedTouches[0].clientX - touchX;
+          const dy = e.changedTouches[0].clientY - touchY;
+          if (Date.now() - touchT > 600) return;      // 长按不算滑动
+          if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.5) return; // 太短或纵向滚动
+          e.preventDefault();
+          go(dx < 0 ? 1 : -1);
+        }, { passive: false });
       });
     } else {
       const f = s.food || {};
@@ -325,6 +338,19 @@
     lbPrev.style.display = hasMultiple ? '' : 'none';
     lbNext.style.display = hasMultiple ? '' : 'none';
     lbCounter.textContent = hasMultiple ? (lbIndex + 1) + ' / ' + lbImages.length : '';
+    // 缩略图预览条
+    var thumbs = document.getElementById('lbThumbs');
+    if (thumbs) {
+      if (!hasMultiple) { thumbs.innerHTML = ''; thumbs.style.display = 'none'; }
+      else {
+        thumbs.style.display = '';
+        thumbs.innerHTML = lbImages.map(function(u, i) {
+          return '<img src="' + u + '" data-i="' + i + '" class="' + (i === lbIndex ? 'active' : '') + '" loading="lazy" alt="" />';
+        }).join('');
+        var act = thumbs.querySelector('img.active');
+        if (act && act.scrollIntoView) act.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+      }
+    }
   }
 
   function lbGo(dir) {
@@ -334,6 +360,25 @@
   }
 
   if (lbPrev) lbPrev.addEventListener('click', function(e) { e.stopPropagation(); lbGo(-1); });
+  // 大图也支持左右滑动切换
+  (function() {
+    var sx = 0, sy = 0;
+    var target = document.getElementById('lightboxImg');
+    if (!target) return;
+    target.addEventListener('touchstart', function(e) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+    target.addEventListener('touchend', function(e) {
+      var dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) { e.preventDefault(); lbGo(dx < 0 ? 1 : -1); }
+    }, { passive: false });
+  })();
+  var lbThumbs = document.getElementById('lbThumbs');
+  if (lbThumbs) lbThumbs.addEventListener('click', function(e) {
+    var t = e.target.closest('img[data-i]');
+    if (!t) return;
+    e.stopPropagation();
+    lbIndex = +t.dataset.i;
+    renderLightbox();
+  });
   if (lbNext) lbNext.addEventListener('click', function(e) { e.stopPropagation(); lbGo(1); });
 
   document.addEventListener('click', (e) => {

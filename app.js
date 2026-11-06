@@ -163,7 +163,14 @@
 
     $$('.s-card').forEach(c => { if (c.dataset.id === id) c.classList.add('is-hidden'); });
 
-    pinnedEmoji.textContent = s.icon || '📍';
+    // 详情头部同样做 emoji 兜底，不支持就显示首字
+    if (s.fallbackChar && !emojiSupported(s.icon)) {
+      pinnedEmoji.textContent = s.fallbackChar;
+      pinnedEmoji.classList.add('is-fb');
+    } else {
+      pinnedEmoji.textContent = s.icon || '📍';
+      pinnedEmoji.classList.remove('is-fb');
+    }
     pinnedName.textContent = s.name;
     pinned.hidden = false;
 
@@ -199,8 +206,18 @@
     routePane.hidden = tab !== 'route';
     foodPane.hidden = tab !== 'food';
   }
-  tabRoute.addEventListener('click', () => { if (currentId) { setActiveTab('route'); renderPinned(currentId, 'route'); } });
-  tabFood.addEventListener('click', () => { if (currentId) { setActiveTab('food'); renderPinned(currentId, 'food'); } });
+  tabRoute.addEventListener('click', () => {
+    if (!currentId) return;
+    setActiveTab('route');
+    renderPinned(currentId, 'route');
+    sweepLoadedImages();
+  });
+  tabFood.addEventListener('click', () => {
+    if (!currentId) return;
+    setActiveTab('food');
+    renderPinned(currentId, 'food');
+    sweepLoadedImages();
+  });
 
   function renderPinned(id, tab) {
     const s = state.scenic.find(x => x.id === id);
@@ -479,12 +496,23 @@
     if (e.key === 'ArrowRight') lbGo(1);
   });
 
-  // 图片加载完成后淡入显示
-  document.addEventListener('load', function(e) {
-    if (e.target.tagName === 'IMG') {
-      e.target.classList.add('loaded');
+  // 图片淡入：同时兼容"已经加载完"和"还在加载"两种情况
+  // 之前只监听 load 事件，命中缓存时图片早已加载完、事件永远不触发 -> 一直 opacity:0 显示空白
+  function markLoaded(img) {
+    if (img.tagName === 'IMG' && img.complete && img.naturalWidth > 0) {
+      img.classList.add('loaded');
     }
+  }
+  document.addEventListener('load', function(e) {
+    if (e.target.tagName === 'IMG') e.target.classList.add('loaded');
   }, true);
+  // 每次渲染后，把所有已完成加载的图片立即标记为 loaded
+  function sweepLoadedImages() {
+    var imgs = document.querySelectorAll('img:not(.loaded)');
+    for (var i = 0; i < imgs.length; i++) markLoaded(imgs[i]);
+  }
+  // 兜底：定时检查几次，处理缓存命中的情况
+  [0, 60, 200, 600, 1500].forEach(function(t) { setTimeout(sweepLoadedImages, t); });
 
   loadContent();
 })();

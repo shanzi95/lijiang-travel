@@ -509,28 +509,6 @@
     if (e.target && e.target.tagName === 'IMG') retryImage(e.target);
   }, true);
 
-  // 兜底巡检：有些情况下连接被静默丢弃，既不报 error 也不加载，
-  // 这里定期检查"已经出现在视口内、却还没加载出来"的图片，主动重试一次。
-  function reviveStalledImages() {
-    var vh = window.innerHeight || 800;
-    var imgs = document.querySelectorAll('img:not(.loaded)');
-    for (var i = 0; i < imgs.length; i++) {
-      var img = imgs[i];
-      if (img.naturalWidth > 0) { markLoaded(img); continue; }
-      var r = img.getBoundingClientRect();
-      // 已进入视口（含上下各 200px 缓冲区）但仍是 0，判定为卡住
-      if (r.bottom > -200 && r.top < vh + 200 && r.width > 0) {
-        retryImage(img);
-      }
-    }
-  }
-  var _reviveTimer = null;
-  function scheduleRevive() {
-    if (_reviveTimer) clearTimeout(_reviveTimer);
-    _reviveTimer = setTimeout(reviveStalledImages, 1200);
-  }
-  window.addEventListener('scroll', scheduleRevive, { passive: true });
-
   // 每次渲染后，把所有已完成加载的图片立即标记为 loaded
   function sweepLoadedImages() {
     var imgs = document.querySelectorAll('img:not(.loaded)');
@@ -538,13 +516,30 @@
   }
   // 兜底：定时检查几次，处理缓存命中的情况
   [0, 60, 200, 600, 1500].forEach(function(t) { setTimeout(sweepLoadedImages, t); });
-  [1200, 3000].forEach(function(t) { setTimeout(reviveStalledImages, t); });
-  // 全局兜底：即使没有滚动，页面加载后也定期巡检，直到没有待加载图片为止
-  var _reviveTicks = 0;
-  var _reviveLoop = setInterval(function() {
-    reviveStalledImages();
-    if (++_reviveTicks > 12) clearInterval(_reviveLoop); // 最多持续约 24 秒
-  }, 2000);
+
+  // 温和兜底：极少数情况下连接会被静默丢弃（既不报 error 也不加载）。
+  // 只在"图片确实进入视口且已等待足够久(6s)"时才重试，且每张图全局只重试一次，
+  // 避免把正常加载中的请求反复打断造成死循环。
+  var _revivedOnce = {};
+  function reviveSlowImages() {
+    var vh = window.innerHeight || 800;
+    var imgs = document.querySelectorAll('img:not(.loaded)');
+    for (var i = 0; i < imgs.length; i++) {
+      var img = imgs[i];
+      if (img.naturalWidth > 0) { markLoaded(img); continue; }
+      var src = img.getAttribute('src');
+      if (!src || _revivedOnce[src]) continue;
+      var r = img.getBoundingClientRect();
+      if (r.bottom > 0 && r.top < vh && r.width > 0) {
+        _revivedOnce[src] = true;
+        retryImage(img);
+      }
+    }
+  }
+  window.addEventListener('scroll', function() {
+    if (reviveSlowImages._t) clearTimeout(reviveSlowImages._t);
+    reviveSlowImages._t = setTimeout(reviveSlowImages, 6000);
+  }, { passive: true });
 
   loadContent();
 })();

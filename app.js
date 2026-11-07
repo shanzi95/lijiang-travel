@@ -70,6 +70,16 @@
 
   /* ---------- 图片预加载 ---------- */
   var _preloaded = {};
+
+  // 图片版本号：图片内容一变就改这里，可强制所有访客的旧缓存失效。
+  // 之前遇到过"页面是新的、图片是旧缓存"导致部分图加载不出来的情况。
+  var IMG_VER = '20261107u';
+  function imgUrl(u) {
+    if (!u) return u;
+    if (/^data:|^https?:\/\//.test(u)) return u;
+    return u + (u.indexOf('?') >= 0 ? '&' : '?') + 'v=' + IMG_VER;
+  }
+
   function scenicImages(s) {
     const urls = [];
     const pts = (s.route && s.route.points) || [];
@@ -260,7 +270,7 @@
         let imgHtml;
         if (p.images && p.images.length > 1) {
           // 多图：轮播组件（只有当前可见的第一张用 eager）
-          const slides = p.images.map((url, i) => `<div class="carousel-slide" data-slide="${i}" style="transform: translateX(${i * 100}%)" data-imgs="${p.images.length}"><img src="${escA(url)}" alt="" ${(eager && i === 0) ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} width="720" height="405" decoding="async" /></div>`).join('');
+          const slides = p.images.map((url, i) => `<div class="carousel-slide" data-slide="${i}" style="transform: translateX(${i * 100}%)" data-imgs="${p.images.length}"><img src="${escA(imgUrl(url))}" alt="" ${(eager && i === 0) ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} width="720" height="405" decoding="async" /></div>`).join('');
           const dots = p.images.map((_, i) => `<span class="dot ${i===0?'active':''}" data-carousel="${pIdx}" data-slide="${i}"></span>`).join('');
           imgHtml = `
             <div class="carousel" data-carousel="${pIdx}">
@@ -271,7 +281,7 @@
             </div>`;
         } else {
           imgHtml = (p.image || (p.images && p.images[0]))
-            ? `<img src="${escA(p.image || p.images[0])}" alt="" ${eager ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} width="720" height="405" decoding="async" />`
+            ? `<img src="${escA(imgUrl(p.image || p.images[0]))}" alt="" ${eager ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} width="720" height="405" decoding="async" />`
             : '<span class="ic-pin"></span>';
         }
         return `<div class="point"><div class="point-img">${imgHtml}</div><div class="point-body"><div class="point-name">${esc(p.name)}</div><div class="point-desc">${esc(p.desc||'')}</div></div></div>`;
@@ -322,7 +332,7 @@
           html += `<div class="food-category"><div class="food-category-title">${esc(cat.icon||'')} ${esc(cat.title||'')}</div>`;
           html += catShops.map(p => {
             const catIcon = cat.icon || '🍜';
-            const img = p.image ? `<img src="${escA(p.image)}" alt="" loading="lazy" width="720" height="405" decoding="async" />` : (p.link ? '<span>🔗</span>' : `<span>${catIcon}</span>`);
+            const img = p.image ? `<img src="${escA(imgUrl(p.image))}" alt="" loading="lazy" width="720" height="405" decoding="async" />` : (p.link ? '<span>🔗</span>' : `<span>${catIcon}</span>`);
             if (p.link) {
               return `<a class="food-link" href="${escA(p.link)}" target="_blank" rel="noopener"><span class="food-link-icon">🔗</span><span>${esc(p.name)}</span><span class="food-link-arrow">›</span></a>`;
             }
@@ -339,12 +349,12 @@
       const defaultIcon = (f.title === '一日游' || f.title === '二日游') ? '📋' : '🍜';
       foodPane.innerHTML = shops.map(p => {
         if (p.name === '__banner__' && p.image) {
-          return `<div class="food-banner"><img src="${escA(p.image)}" alt="" loading="lazy" width="720" height="405" decoding="async" /></div>`;
+          return `<div class="food-banner"><img src="${escA(imgUrl(p.image))}" alt="" loading="lazy" width="720" height="405" decoding="async" /></div>`;
         }
         if (p.link) {
           return `<a class="food-link" href="${escA(p.link)}" target="_blank" rel="noopener"><span class="food-link-icon">🔗</span><span>${esc(p.name)}</span><span class="food-link-arrow">›</span></a>`;
         }
-        const img = p.image ? `<img src="${escA(p.image)}" alt="" loading="lazy" width="720" height="405" decoding="async" />` : `<span>${defaultIcon}</span>`;
+        const img = p.image ? `<img src="${escA(imgUrl(p.image))}" alt="" loading="lazy" width="720" height="405" decoding="async" />` : `<span>${defaultIcon}</span>`;
         // 管家提示卡片无需缩略图，纯文字更清爽
         if (p.name && p.name.indexOf('可咨询管家') === 0) {
           return `<div class="point point-text"><div class="point-body"><div class="point-name">${esc(p.name)}</div><div class="point-desc">${esc(p.desc||'')}</div></div></div>`;
@@ -543,9 +553,9 @@
     if (n >= 3) return;
     _retryMap[src] = n + 1;
     setTimeout(function() {
-      // 加时间戳绕过失败缓存
-      var clean = src.split('?')[0];
-      img.src = clean + (clean.indexOf('?') >= 0 ? '&' : '?') + '_r=' + (n + 1) + '_' + Date.now();
+      // 保留原有 ?v= 版本号，只追加时间戳绕开失败缓存
+      var sep = src.indexOf('?') >= 0 ? '&' : '?';
+      img.src = src + sep + '_r=' + (n + 1) + '_' + Date.now();
     }, 350 * (n + 1));
   }
   document.addEventListener('error', function(e) {

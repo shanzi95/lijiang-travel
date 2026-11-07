@@ -64,7 +64,40 @@
       state = __CONTENT__;
       renderAll();
       if (currentId) renderPinned(currentId, currentTab);
+      preloadCovers();
     }
+  }
+
+  /* ---------- 图片预加载 ---------- */
+  var _preloaded = {};
+  function scenicImages(s) {
+    const urls = [];
+    const pts = (s.route && s.route.points) || [];
+    pts.forEach(p => {
+      if (p.image) urls.push(p.image);
+      (p.images || []).forEach(u => urls.push(u));
+    });
+    return urls.filter(Boolean);
+  }
+  function preloadImages(urls, priority) {
+    urls.forEach(function(u) {
+      if (!u || _preloaded[u]) return;
+      _preloaded[u] = true;
+      var im = new Image();
+      if (priority) { try { im.fetchPriority = 'high'; } catch (e) {} }
+      im.src = u;
+    });
+  }
+  // 页面打开后空闲时，预先下载八个景点的封面首图，点击任何景点秒出图
+  function preloadCovers() {
+    var covers = [];
+    state.scenic.forEach(function(s) {
+      var urls = scenicImages(s);
+      if (urls.length) covers.push(urls[0]);
+    });
+    var start = function() { preloadImages(covers, false); };
+    if (window.requestIdleCallback) requestIdleCallback(start, { timeout: 4000 });
+    else setTimeout(start, 2500);
   }
 
   /* ---------- 渲染宫格 ---------- */
@@ -145,6 +178,9 @@
     if (!s) return;
     currentId = id;
     currentTab = 'route';
+
+    // 立即高优先级预加载该景点全部图片，赶在渲染前开始下载
+    preloadImages(scenicImages(s), true);
 
     $$('.s-card').forEach(c => { if (c.dataset.id === id) c.classList.add('is-hidden'); });
 

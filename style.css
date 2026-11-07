@@ -350,7 +350,7 @@ img { max-width: 100%; display: block; }
 .carousel-track {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
 }
 .carousel-slide {

@@ -66,9 +66,10 @@ img { max-width: 100%; display: block; }
 .btn-book:active { transform: scale(0.96); }
 
 /* ========== Hero ========== */
-.hero { text-align: center; padding: 36px 8px 12px; }
+/* 已去掉"遇见丽江"标题，图标居中作为首屏标识 */
+.hero { text-align: center; padding: 30px 8px 6px; }
 .hero-logo {
-  width: 96px; height: 96px; margin: 0 auto 18px;
+  width: 96px; height: 96px; margin: 0 auto;
   background: transparent;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
@@ -76,9 +77,6 @@ img { max-width: 100%; display: block; }
   overflow: hidden;
 }
 .hero-icon { width: 96px; height: 96px; object-fit: cover; border-radius: 50%; }
-.hero-title { font-size: 30px; font-weight: 700; margin: 0 0 6px; letter-spacing: 1px; }
-.hero-sub { font-size: 14px; color: var(--ink-2); margin: 0; }
-.hero-sub .dot { margin: 0 6px; opacity: 0.6; }
 
 /* ========== Section ========== */
 .section { margin-top: 22px; }

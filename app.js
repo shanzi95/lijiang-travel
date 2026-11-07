@@ -73,7 +73,7 @@
 
   // 图片版本号：图片内容一变就改这里，可强制所有访客的旧缓存失效。
   // 之前遇到过"页面是新的、图片是旧缓存"导致部分图加载不出来的情况。
-  var IMG_VER = '20261107u';
+  var IMG_VER = '20261107v';
   function imgUrl(u) {
     if (!u) return u;
     if (/^data:|^https?:\/\//.test(u)) return u;

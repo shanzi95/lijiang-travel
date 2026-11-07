@@ -527,7 +527,7 @@
   var _reviveTimer = null;
   function scheduleRevive() {
     if (_reviveTimer) clearTimeout(_reviveTimer);
-    _reviveTimer = setTimeout(reviveStalledImages, 2500);
+    _reviveTimer = setTimeout(reviveStalledImages, 1200);
   }
   window.addEventListener('scroll', scheduleRevive, { passive: true });
 
@@ -539,6 +539,12 @@
   // 兜底：定时检查几次，处理缓存命中的情况
   [0, 60, 200, 600, 1500].forEach(function(t) { setTimeout(sweepLoadedImages, t); });
   [1200, 3000].forEach(function(t) { setTimeout(reviveStalledImages, t); });
+  // 全局兜底：即使没有滚动，页面加载后也定期巡检，直到没有待加载图片为止
+  var _reviveTicks = 0;
+  var _reviveLoop = setInterval(function() {
+    reviveStalledImages();
+    if (++_reviveTicks > 12) clearInterval(_reviveLoop); // 最多持续约 24 秒
+  }, 2000);
 
   loadContent();
 })();

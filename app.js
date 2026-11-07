@@ -95,9 +95,10 @@
       var urls = scenicImages(s);
       if (urls.length) covers.push(urls[0]);
     });
-    var start = function() { preloadImages(covers, false); };
-    if (window.requestIdleCallback) requestIdleCallback(start, { timeout: 4000 });
-    else setTimeout(start, 2500);
+    // 立刻开始，不要等 requestIdleCallback——
+    // 手机上图片本来就慢，等"空闲"往往要 4 秒以上，客人早点了。
+    // 用低优先级慢慢下，不影响当前页面渲染。
+    preloadImages(covers, false);
   }
 
   /* ---------- 渲染宫格 ---------- */
@@ -179,8 +180,11 @@
     currentId = id;
     currentTab = 'route';
 
-    // 立即高优先级预加载该景点全部图片，赶在渲染前开始下载
-    preloadImages(scenicImages(s), true);
+    // 只优先抢下"打开后立刻能看到"的前两张图。
+    // 之前一次性预加载全部图片，会开几十个请求抢手机 4G 的带宽，
+    // 反而让首图排队变慢；其余图片交给 loading=lazy 滑到再下。
+    const allImgs = scenicImages(s);
+    preloadImages(allImgs.slice(0, 2), true);
 
     $$('.s-card').forEach(c => { if (c.dataset.id === id) c.classList.add('is-hidden'); });
 
@@ -250,10 +254,13 @@
       if (r.summary) summary = `<div class="route-summary"><div class="label">${esc(r.title||'游玩环线')}</div><div>${esc(r.summary)}</div></div>`;
       if (!pts.length) { routePane.innerHTML = summary + '<div class="empty-tip">该景点路线点位还未配置</div>'; return; }
       routePane.innerHTML = summary + pts.map((p, pIdx) => {
+        // 前两个点位在首屏，用 eager 立刻下载；其余用 lazy 滑到再下，
+        // 避免一打开就把二三十个请求全砸到手机网络上。
+        const eager = pIdx < 2;
         let imgHtml;
         if (p.images && p.images.length > 1) {
-          // 多图：轮播组件
-          const slides = p.images.map((url, i) => `<div class="carousel-slide" data-slide="${i}" style="transform: translateX(${i * 100}%)" data-imgs="${p.images.length}"><img src="${escA(url)}" alt="" loading="lazy" width="900" height="506" decoding="async" /></div>`).join('');
+          // 多图：轮播组件（只有当前可见的第一张用 eager）
+          const slides = p.images.map((url, i) => `<div class="carousel-slide" data-slide="${i}" style="transform: translateX(${i * 100}%)" data-imgs="${p.images.length}"><img src="${escA(url)}" alt="" ${(eager && i === 0) ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} width="720" height="405" decoding="async" /></div>`).join('');
           const dots = p.images.map((_, i) => `<span class="dot ${i===0?'active':''}" data-carousel="${pIdx}" data-slide="${i}"></span>`).join('');
           imgHtml = `
             <div class="carousel" data-carousel="${pIdx}">
@@ -264,7 +271,7 @@
             </div>`;
         } else {
           imgHtml = (p.image || (p.images && p.images[0]))
-            ? `<img src="${escA(p.image || p.images[0])}" alt="" loading="lazy" width="900" height="506" decoding="async" />`
+            ? `<img src="${escA(p.image || p.images[0])}" alt="" ${eager ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} width="720" height="405" decoding="async" />`
             : '<span class="ic-pin"></span>';
         }
         return `<div class="point"><div class="point-img">${imgHtml}</div><div class="point-body"><div class="point-name">${esc(p.name)}</div><div class="point-desc">${esc(p.desc||'')}</div></div></div>`;
@@ -315,7 +322,7 @@
           html += `<div class="food-category"><div class="food-category-title">${esc(cat.icon||'')} ${esc(cat.title||'')}</div>`;
           html += catShops.map(p => {
             const catIcon = cat.icon || '🍜';
-            const img = p.image ? `<img src="${escA(p.image)}" alt="" loading="lazy" width="900" height="506" decoding="async" />` : (p.link ? '<span>🔗</span>' : `<span>${catIcon}</span>`);
+            const img = p.image ? `<img src="${escA(p.image)}" alt="" loading="lazy" width="720" height="405" decoding="async" />` : (p.link ? '<span>🔗</span>' : `<span>${catIcon}</span>`);
             if (p.link) {
               return `<a class="food-link" href="${escA(p.link)}" target="_blank" rel="noopener"><span class="food-link-icon">🔗</span><span>${esc(p.name)}</span><span class="food-link-arrow">›</span></a>`;
             }
@@ -332,12 +339,12 @@
       const defaultIcon = (f.title === '一日游' || f.title === '二日游') ? '📋' : '🍜';
       foodPane.innerHTML = shops.map(p => {
         if (p.name === '__banner__' && p.image) {
-          return `<div class="food-banner"><img src="${escA(p.image)}" alt="" loading="lazy" width="900" height="506" decoding="async" /></div>`;
+          return `<div class="food-banner"><img src="${escA(p.image)}" alt="" loading="lazy" width="720" height="405" decoding="async" /></div>`;
         }
         if (p.link) {
           return `<a class="food-link" href="${escA(p.link)}" target="_blank" rel="noopener"><span class="food-link-icon">🔗</span><span>${esc(p.name)}</span><span class="food-link-arrow">›</span></a>`;
         }
-        const img = p.image ? `<img src="${escA(p.image)}" alt="" loading="lazy" width="900" height="506" decoding="async" />` : `<span>${defaultIcon}</span>`;
+        const img = p.image ? `<img src="${escA(p.image)}" alt="" loading="lazy" width="720" height="405" decoding="async" />` : `<span>${defaultIcon}</span>`;
         // 管家提示卡片无需缩略图，纯文字更清爽
         if (p.name && p.name.indexOf('可咨询管家') === 0) {
           return `<div class="point point-text"><div class="point-body"><div class="point-name">${esc(p.name)}</div><div class="point-desc">${esc(p.desc||'')}</div></div></div>`;

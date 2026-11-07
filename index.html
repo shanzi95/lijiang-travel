@@ -6,7 +6,11 @@
   <meta name="theme-color" content="#f5ecda" />
   <title>山山的推荐 · 丽江</title>
   <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text y='52' font-size='52'>山</text></svg>" />
-  <link rel="stylesheet" href="style.css?v=20261107r" />
+  <!-- 提前和图片服务器握手，省掉每张图第一次请求的建连等待 -->
+  <link rel="preconnect" href="https://www.91ss.online" crossorigin />
+  <link rel="dns-prefetch" href="https://www.91ss.online" />
+  <link rel="preload" as="image" href="uploads/mountain-circle.webp" fetchpriority="high" />
+  <link rel="stylesheet" href="style.css?v=20261107t" />
 
 
 <script>
@@ -101,6 +105,6 @@ var __CONTENT__ = {"version": 1, "updatedAt": "2026-07-30T09:04:00.000Z", "site"
 
   <div class="toast" id="toast" hidden></div>
 
-  <script src="app.js?v=20261107r"></script>
+  <script src="app.js?v=20261107t"></script>
 </body>
 </html>

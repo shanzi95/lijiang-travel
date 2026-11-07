@@ -576,14 +576,14 @@ img { max-width: 100%; display: block; }
 .tips-p {
   font-size: 14.5px;
   line-height: 1.85;
-  color: var(--ink-2);
+  color: var(--ink);
   margin: 0 0 14px;
   padding-left: 2px;
   letter-spacing: 0.2px;
 }
 .tips-p:last-child { margin-bottom: 0; }
-.tips-p-weather {
+/* 分组分隔：第二段起另起一组，上方加虚线 */
+.tips-p-group-start {
   padding-top: 14px;
   border-top: 1px dashed var(--line);
-  color: var(--ink-2);
 }

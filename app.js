@@ -6,7 +6,6 @@
   const $$ = (s) => Array.from(document.querySelectorAll(s));
   const grid = $('#grid');
   const tipsCard = $('#tipsCard');
-  const routeDetail = $('#routeDetail');
   const pinned = $('#pinnedCard');
   const pinnedBtn = $('#pinnedBtn');
   const pinnedEmoji = $('#pinnedEmoji');
@@ -95,10 +94,10 @@
       tipsCard.innerHTML = '<div class="empty-tip">暂无提示</div>';
       return;
     }
+    // 第 1 段是天气提醒，单独一组；从第 2 段（购物相关）开始另起一组，中间用虚线分开
     var paras = t.paragraphs.map(function (text, i) {
-      // 最后一段（天气提醒）单独一种强调样式
-      var isWeather = i === t.paragraphs.length - 1 && t.paragraphs.length > 1;
-      return '<p class="tips-p' + (isWeather ? ' tips-p-weather' : '') + '">' + esc(text) + '</p>';
+      var cls = 'tips-p' + (i === 1 ? ' tips-p-group-start' : '');
+      return '<p class="' + cls + '">' + esc(text) + '</p>';
     }).join('');
     tipsCard.innerHTML = paras;
   }
@@ -136,11 +135,6 @@
   }
 
   function renderAll() {
-    const site = state.site || {};
-    if (site.bannerTitle) {
-      const subs = (site.bannerSubtitle || '').split(/[·•]/).map(s => s.trim()).filter(Boolean);
-      $('.hero-sub').innerHTML = subs.map((s,i) => i ? `<span class="dot">·</span><span>${esc(s)}</span>` : `<span>${esc(s)}</span>`).join('');
-    }
     renderGrid();
     renderTips();
   }

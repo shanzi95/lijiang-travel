@@ -509,6 +509,28 @@
     if (e.target && e.target.tagName === 'IMG') retryImage(e.target);
   }, true);
 
+  // 兜底巡检：有些情况下连接被静默丢弃，既不报 error 也不加载，
+  // 这里定期检查"已经出现在视口内、却还没加载出来"的图片，主动重试一次。
+  function reviveStalledImages() {
+    var vh = window.innerHeight || 800;
+    var imgs = document.querySelectorAll('img:not(.loaded)');
+    for (var i = 0; i < imgs.length; i++) {
+      var img = imgs[i];
+      if (img.naturalWidth > 0) { markLoaded(img); continue; }
+      var r = img.getBoundingClientRect();
+      // 已进入视口（含上下各 200px 缓冲区）但仍是 0，判定为卡住
+      if (r.bottom > -200 && r.top < vh + 200 && r.width > 0) {
+        retryImage(img);
+      }
+    }
+  }
+  var _reviveTimer = null;
+  function scheduleRevive() {
+    if (_reviveTimer) clearTimeout(_reviveTimer);
+    _reviveTimer = setTimeout(reviveStalledImages, 2500);
+  }
+  window.addEventListener('scroll', scheduleRevive, { passive: true });
+
   // 每次渲染后，把所有已完成加载的图片立即标记为 loaded
   function sweepLoadedImages() {
     var imgs = document.querySelectorAll('img:not(.loaded)');
@@ -516,6 +538,7 @@
   }
   // 兜底：定时检查几次，处理缓存命中的情况
   [0, 60, 200, 600, 1500].forEach(function(t) { setTimeout(sweepLoadedImages, t); });
+  [1200, 3000].forEach(function(t) { setTimeout(reviveStalledImages, t); });
 
   loadContent();
 })();

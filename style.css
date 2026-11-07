@@ -554,3 +554,36 @@ img { max-width: 100%; display: block; }
   box-shadow: 0 8px 18px rgba(0,0,0,0.15);
   filter: none;
 }
+
+/* ========== 温馨提示 ========== */
+.tips-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px 18px;
+  box-shadow: var(--shadow);
+  position: relative;
+}
+.tips-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 18px; bottom: 18px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--brand);
+  opacity: 0.5;
+}
+.tips-p {
+  font-size: 14.5px;
+  line-height: 1.85;
+  color: var(--ink-2);
+  margin: 0 0 14px;
+  padding-left: 2px;
+  letter-spacing: 0.2px;
+}
+.tips-p:last-child { margin-bottom: 0; }
+.tips-p-weather {
+  padding-top: 14px;
+  border-top: 1px dashed var(--line);
+  color: var(--ink);
+}

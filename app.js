@@ -5,7 +5,7 @@
   const $ = (s) => document.querySelector(s);
   const $$ = (s) => Array.from(document.querySelectorAll(s));
   const grid = $('#grid');
-  const routeList = $('#routeList');
+  const tipsCard = $('#tipsCard');
   const routeDetail = $('#routeDetail');
   const pinned = $('#pinnedCard');
   const pinnedBtn = $('#pinnedBtn');
@@ -87,29 +87,20 @@
     });
   }
 
-  /* ---------- 渲染推荐路线 ---------- */
-  function renderRoutes() {
-    if (!state.routes || !state.routes.length) {
-      routeList.innerHTML = '<div class="empty-tip">暂无推荐路线</div>';
+  /* ---------- 渲染温馨提示 ---------- */
+  function renderTips() {
+    if (!tipsCard) return;
+    var t = state.tips;
+    if (!t || !t.paragraphs || !t.paragraphs.length) {
+      tipsCard.innerHTML = '<div class="empty-tip">暂无提示</div>';
       return;
     }
-    routeList.innerHTML = state.routes.map(r => {
-      const thumb = r.image ? `<img src="${escA(r.image)}" alt="" loading="lazy" />` : '<span class="ic-map"></span>';
-      const tags = [];
-      if (r.duration) tags.push(`<span class="tag"><span class="ic-clock"></span>${esc(r.duration)}</span>`);
-      if (r.type) tags.push(`<span class="tag">${esc(r.type)}</span>`);
-      const hasDetail = r.detail && r.detail.length > 0;
-      const arrow = hasDetail ? '<span class="route-arrow">›</span>' : '';
-      return `<div class="route-card${hasDetail ? ' has-detail' : ''}" data-route-id="${esc(r.id)}"><div class="route-thumb">${thumb}</div><div class="route-body"><div class="route-title">${esc(r.title)}${arrow}</div><div class="route-summary-text">${esc(r.summary||'')}</div><div class="route-tags">${tags.join('')}</div></div></div>`;
+    var paras = t.paragraphs.map(function (text, i) {
+      // 最后一段（天气提醒）单独一种强调样式
+      var isWeather = i === t.paragraphs.length - 1 && t.paragraphs.length > 1;
+      return '<p class="tips-p' + (isWeather ? ' tips-p-weather' : '') + '">' + esc(text) + '</p>';
     }).join('');
-
-    // 绑定点击事件
-    $$('.route-card.has-detail').forEach(card => {
-      card.addEventListener('click', () => {
-        const rid = card.dataset.routeId;
-        toggleRouteDetail(rid);
-      });
-    });
+    tipsCard.innerHTML = paras;
   }
 
   function toggleRouteDetail(rid) {
@@ -151,7 +142,7 @@
       $('.hero-sub').innerHTML = subs.map((s,i) => i ? `<span class="dot">·</span><span>${esc(s)}</span>` : `<span>${esc(s)}</span>`).join('');
     }
     renderGrid();
-    renderRoutes();
+    renderTips();
   }
 
   /* ---------- 打开景点（置顶）---------- */

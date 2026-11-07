@@ -352,6 +352,19 @@ img { max-width: 100%; display: block; }
   width: 100%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
+  /* 加载中的微光占位，避免出现纯白/纯色空框让人以为图片坏了 */
+  background: linear-gradient(100deg, #efe6d6 30%, #f7f0e4 50%, #efe6d6 70%);
+  background-size: 220% 100%;
+  animation: skeletonShine 1.4s ease-in-out infinite;
+}
+/* 有任何一张图加载完成后，停止微光（避免加载完还在闪） */
+.carousel-track:has(img.loaded) {
+  animation: none;
+  background: var(--bg-2);
+}
+@keyframes skeletonShine {
+  0%   { background-position: 120% 0; }
+  100% { background-position: -20% 0; }
 }
 .carousel-slide {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
